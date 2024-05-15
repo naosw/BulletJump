@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
@@ -8,77 +9,60 @@ public class PlayerMovement : MonoBehaviour
     public float jumpForce = 6f;
     public float walkSpeed = 6f;
     public TextMeshProUGUI bullets;
-    public GameObject chamberOne;
-    public GameObject chamberTwo;
-    public GameObject chamberThree;
-    public GameObject chamberFour;
-    public GameObject chamberFive;
-    public GameObject chamberSix;
-    public GameObject chamberEmpty;
     private int bulletCount = 6;
+    public GameObject bullet;
+    public GameObject self;
+    TouchingDirections touchingDirections;
 
     Rigidbody2D rb;
+    public Animator animator;
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        touchingDirections = GetComponent<TouchingDirections>();
+        refreshBullets();
+    }
+
+    void refreshBullets()
+    {
         bullets.text = "Bullets: " + bulletCount;
+        animator.SetInteger("Bullets", bulletCount);
+    }
+
+    void fireBullet()
+    {
+        Instantiate(bullet, new Vector3(transform.position.x, transform.position.y - 1.25f, transform.position.z), Quaternion.Euler(0, 0, 180));
     }
 
     // Update is called once per frame
     void Update()
     {
+        self.transform.eulerAngles = new Vector3(0, 0, 0);
         if (Input.GetKeyDown(KeyCode.Space))
         {
-            if (bulletCount > 0) {
+            if (touchingDirections.IsGrounded) {
+                rb.velocity = new Vector2(rb.velocity.x, jumpForce);
+            }
+            else if (bulletCount > 0) {
                 rb.velocity = new Vector2(rb.velocity.x, jumpForce);
                 bulletCount--;
-                bullets.text = "Bullets: " + bulletCount;
+                refreshBullets();
+                fireBullet();
             }
         }
-        if (Input.GetKeyDown(KeyCode.A))
+        if (Input.GetKey(KeyCode.A))
         {
             rb.velocity = new Vector2(-walkSpeed, rb.velocity.y);
         }
-        if (Input.GetKeyDown(KeyCode.D))
+        if (Input.GetKey(KeyCode.D))
         {
             rb.velocity = new Vector2(walkSpeed, rb.velocity.y);
         }
-
-        // bullet chambers
-        if (bulletCount == 6) {
-            chamberSix.SetActive(true);
-            chamberEmpty.SetActive(false);
-        }
-        if (bulletCount == 5)
+        if (Input.GetKeyDown(KeyCode.R))
         {
-            chamberFive.SetActive(true);
-            chamberSix.SetActive(false);
-        }
-        if (bulletCount == 4)
-        {
-            chamberFour.SetActive(true);
-            chamberFive.SetActive(false);
-        }
-        if (bulletCount == 3)
-        {
-            chamberThree.SetActive(true);
-            chamberFour.SetActive(false);
-        }
-        if (bulletCount == 2)
-        {
-            chamberTwo.SetActive(true);
-            chamberThree.SetActive(false);
-        }
-        if (bulletCount == 1)
-        {
-            chamberOne.SetActive(true);
-            chamberTwo.SetActive(false);
-        }
-        if (bulletCount == 0)
-        {
-            chamberEmpty.SetActive(true);
-            chamberOne.SetActive(false);
+            bulletCount = 6;
+            refreshBullets();
         }
     }
 }
